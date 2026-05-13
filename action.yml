@@ -1,0 +1,45 @@
+name: Catapult Deploy
+description: Run a CatapultJS deployment pipeline
+inputs:
+  command:
+    description: Catapult command to run
+    required: false
+    default: deploy
+  config:
+    description: Path to deploy config file
+    required: false
+  args:
+    description: Extra CLI args passed to Catapult
+    required: false
+  package-manager:
+    description: Package manager to use (npm, pnpm, yarn, bun)
+    required: false
+  version:
+    description: Version of @catapultjs/deploy to execute
+    required: false
+    default: latest
+  working-directory:
+    description: Working directory relative to the repository root
+    required: false
+    default: .
+
+  private-key:
+    description: SSH private key used for deployment
+    required: false
+  known-hosts:
+    description: Content of ~/.ssh/known_hosts
+    required: false
+  ssh-config:
+    description: Content of ~/.ssh/config
+    required: false
+  skip-ssh-setup:
+    description: Skip SSH setup
+    required: false
+    default: 'false'
+  insecure-ignore-host-key:
+    description: Disable strict host key checking when known-hosts is not provided
+    required: false
+    default: 'false'
+runs:
+  using: node24
+  main: dist/index.js
