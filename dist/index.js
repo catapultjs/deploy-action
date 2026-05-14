@@ -19732,6 +19732,39 @@ function pmExec(packageManager) {
   }
   return "npx";
 }
+function pmInstallArgs(packageManager) {
+  switch (packageManager) {
+    case PackageManager.NPM:
+      return ["ci"];
+    case PackageManager.PNPM:
+      return ["install", "--frozen-lockfile"];
+    case PackageManager.YARN:
+      return ["install", "--immutable"];
+    case PackageManager.BUN:
+      return ["install", "--frozen-lockfile"];
+  }
+}
+function resolvePackageManager(input) {
+  switch (input.trim()) {
+    case "":
+    case PackageManager.NPM:
+    case "npx":
+      return PackageManager.NPM;
+    case PackageManager.PNPM:
+    case "pnpx":
+      return PackageManager.PNPM;
+    case PackageManager.YARN:
+    case "yarn dlx":
+      return PackageManager.YARN;
+    case PackageManager.BUN:
+    case "bunx":
+      return PackageManager.BUN;
+    default:
+      throw new Error(
+        `Unsupported package-manager input: ${input}. Use npm, pnpm, yarn, or bun.`
+      );
+  }
+}
 async function addPrivateKey(privateKey) {
   await new Promise((resolvePromise, rejectPromise) => {
     const child2 = node_child_process.spawn("ssh-add", ["-"], {
@@ -19798,12 +19831,20 @@ async function run() {
   const extraArgs = getMultilineInput("args");
   const version = getInput("version") || "latest";
   const cwd = getInput("working-directory") || ".";
-  const pm = getInput("package-manager") || pmExec(await detectPackageManager());
+  const packageManagerInput = getInput("package-manager");
+  const packageManager = packageManagerInput ? resolvePackageManager(packageManagerInput) : await detectPackageManager(cwd);
+  const pm = pmExec(packageManager);
   const args = ["--yes", `@catapultjs/deploy@${version}`, command];
   if (config) {
     args.push("--config", config);
   }
   args.push(...extraArgs);
+  startGroup(`Installing dependencies with ${packageManager}`);
+  try {
+    await exec(packageManager, pmInstallArgs(packageManager), { cwd });
+  } finally {
+    endGroup();
+  }
   startGroup(`Running catapult ${command}`);
   try {
     await exec(pm, args, { cwd });

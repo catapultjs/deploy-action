@@ -1,6 +1,12 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import { detectPackageManager, pmExec, setupSsh } from './utils.js'
+import {
+  detectPackageManager,
+  pmExec,
+  pmInstallArgs,
+  resolvePackageManager,
+  setupSsh,
+} from './utils.js'
 
 async function run(): Promise<void> {
   await setupSsh()
@@ -10,8 +16,11 @@ async function run(): Promise<void> {
   const extraArgs = core.getMultilineInput('args')
   const version = core.getInput('version') || 'latest'
   const cwd = core.getInput('working-directory') || '.'
-  const pm =
-    core.getInput('package-manager') || pmExec(await detectPackageManager())
+  const packageManagerInput = core.getInput('package-manager')
+  const packageManager = packageManagerInput
+    ? resolvePackageManager(packageManagerInput)
+    : await detectPackageManager(cwd)
+  const pm = pmExec(packageManager)
 
   const args = ['--yes', `@catapultjs/deploy@${version}`, command]
 
@@ -20,6 +29,13 @@ async function run(): Promise<void> {
   }
 
   args.push(...extraArgs)
+
+  core.startGroup(`Installing dependencies with ${packageManager}`)
+  try {
+    await exec.exec(packageManager, pmInstallArgs(packageManager), { cwd })
+  } finally {
+    core.endGroup()
+  }
 
   core.startGroup(`Running catapult ${command}`)
   try {

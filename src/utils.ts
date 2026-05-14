@@ -12,7 +12,7 @@ const PackageManager = {
   YARN: 'yarn',
   BUN: 'bun',
 } as const
-type PackageManager = (typeof PackageManager)[keyof typeof PackageManager]
+export type PackageManager = (typeof PackageManager)[keyof typeof PackageManager]
 
 const PM_LOCK_FILES: [string, PackageManager][] = [
   ['bun.lock', PackageManager.BUN],
@@ -50,19 +50,50 @@ export function pmExec(packageManager: PackageManager): string {
   switch (packageManager) {
     case PackageManager.NPM:
       return 'npx'
-      break
     case PackageManager.PNPM:
       return 'pnpx'
-      break
     case PackageManager.YARN:
       return 'yarn dlx'
-      break
     case PackageManager.BUN:
       return 'bunx'
-      break
   }
 
   return 'npx'
+}
+
+export function pmInstallArgs(packageManager: PackageManager): string[] {
+  switch (packageManager) {
+    case PackageManager.NPM:
+      return ['ci']
+    case PackageManager.PNPM:
+      return ['install', '--frozen-lockfile']
+    case PackageManager.YARN:
+      return ['install', '--immutable']
+    case PackageManager.BUN:
+      return ['install', '--frozen-lockfile']
+  }
+}
+
+export function resolvePackageManager(input: string): PackageManager {
+  switch (input.trim()) {
+    case '':
+    case PackageManager.NPM:
+    case 'npx':
+      return PackageManager.NPM
+    case PackageManager.PNPM:
+    case 'pnpx':
+      return PackageManager.PNPM
+    case PackageManager.YARN:
+    case 'yarn dlx':
+      return PackageManager.YARN
+    case PackageManager.BUN:
+    case 'bunx':
+      return PackageManager.BUN
+    default:
+      throw new Error(
+        `Unsupported package-manager input: ${input}. Use npm, pnpm, yarn, or bun.`,
+      )
+  }
 }
 
 async function addPrivateKey(privateKey: string): Promise<void> {

@@ -13,7 +13,7 @@ The action executes CatapultJS deployment commands with a package manager resolv
 
 ## Usage
 
-Use the minimal workflow when the deployment is fully handled remotely and does not rely on local project dependencies:
+Use the minimal workflow when the project dependencies can be installed with the runner defaults:
 
 ```yaml
 name: Deploy
@@ -36,7 +36,7 @@ jobs:
           version: latest
 ```
 
-Add a runtime setup and dependency installation when your Catapult config or deployment scripts depend on local packages:
+Add a runtime setup when your project needs a specific Node version or package-manager tooling. The action always installs dependencies in the `working-directory` before running Catapult:
 
 ```yaml
 name: Deploy
@@ -53,8 +53,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-
-      - run: npm ci
+          cache: npm
 
       - uses: catapultjs/deploy-action@v1
         with:
@@ -69,11 +68,14 @@ jobs:
             -c config.ts
 ```
 
-If the repository uses another package manager, replace the install command with the matching equivalent:
+The action installs dependencies with the detected package manager:
 
-- `pnpm install --frozen-lockfile`
-- `yarn install --immutable`
-- `bun install --frozen-lockfile`
+- npm -> `npm ci`
+- pnpm -> `pnpm install --frozen-lockfile`
+- yarn -> `yarn install --immutable`
+- bun -> `bun install --frozen-lockfile`
+
+You can still set up the runtime yourself before the action, for example with `actions/setup-node`, `pnpm/action-setup`, or Bun setup if your project needs a specific toolchain version.
 
 The action prepares `~/.ssh` before running Catapult. Provide the deployment key and host verification data in the workflow:
 
@@ -96,7 +98,7 @@ The action prepares `~/.ssh` before running Catapult. Provide the deployment key
 | `command`                  | No       | `deploy`      | Catapult command to run.                                                             |
 | `config`                   | No       | -             | Path to the deploy config file.                                                      |
 | `args`                     | No       | -             | Extra CLI args passed to Catapult, one per line.                                     |
-| `package-manager`          | No       | auto-detected | Package manager executable to use. If omitted, the action detects it from lockfiles. |
+| `package-manager`          | No       | auto-detected | Package manager to use (`npm`, `pnpm`, `yarn`, or `bun`). If omitted, the action detects it from lockfiles. |
 | `version`                  | No       | `latest`      | Version of `@catapultjs/deploy` to execute.                                          |
 | `working-directory`        | No       | `.`           | Working directory relative to the repository root.                                   |
 | `private-key`              | Yes      | -             | SSH private key added to the `ssh-agent`.                                            |
@@ -108,7 +110,7 @@ The action prepares `~/.ssh` before running Catapult. Provide the deployment key
 ## Notes
 
 - This action runs on the GitHub Actions `node24` runtime.
-- Installing dependencies is an optional workflow step, only needed when the deployment uses local project packages.
+- The action installs project dependencies in the `working-directory` before running Catapult.
 - SSH setup runs before the Catapult command. `private-key` is required, and you should also provide `known-hosts` unless you intentionally set `insecure-ignore-host-key: true`.
 - `dist/` is the published entrypoint for the action and should be committed with source changes.
 
