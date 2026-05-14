@@ -55,7 +55,7 @@ jobs:
           node-version: 24
           cache: npm
 
-      - uses: catapultjs/deploy-action@v1
+      - uses: catapultjs/deploy-action@v0.5.0
         with:
           command: deploy
           config: catapult.deploy.ts
@@ -80,7 +80,7 @@ You can still set up the runtime yourself before the action, for example with `a
 The action prepares `~/.ssh` before running Catapult. Provide the deployment key and host verification data in the workflow:
 
 ```yaml
-- uses: catapultjs/deploy-action@v1
+- uses: catapultjs/deploy-action@v0.5.0
   with:
     command: deploy
     private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
