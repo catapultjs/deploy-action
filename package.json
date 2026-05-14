@@ -2,14 +2,13 @@
   "name": "catapultjs-deploy-action",
   "version": "0.2.0",
   "private": true,
-  "type": "module",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noEmit",
     "format": "prettier --write .",
-    "package": "npm run build"
+    "package": "vite build"
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
@@ -18,7 +17,8 @@
   "devDependencies": {
     "@types/node": "^24.9.1",
     "prettier": "^3.8.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12"
   },
   "prettier": {
     "semi": false,
