@@ -31,6 +31,8 @@ jobs:
         with:
           command: deploy
           config: catapult.deploy.ts
+          private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          known-hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           version: latest
 ```
 
@@ -58,6 +60,8 @@ jobs:
         with:
           command: deploy
           config: catapult.deploy.ts
+          private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          known-hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           version: latest
           working-directory: .
           args: |
@@ -71,7 +75,7 @@ If the repository uses another package manager, replace the install command with
 - `yarn install --immutable`
 - `bun install --frozen-lockfile`
 
-When the deployment needs SSH access, provide SSH-related inputs to prepare `~/.ssh` before running Catapult:
+The action prepares `~/.ssh` before running Catapult. Provide the deployment key and host verification data in the workflow:
 
 ```yaml
 - uses: catapultjs/deploy-action@v1
@@ -95,7 +99,7 @@ When the deployment needs SSH access, provide SSH-related inputs to prepare `~/.
 | `package-manager`          | No       | auto-detected | Package manager executable to use. If omitted, the action detects it from lockfiles. |
 | `version`                  | No       | `latest`      | Version of `@catapultjs/deploy` to execute.                                          |
 | `working-directory`        | No       | `.`           | Working directory relative to the repository root.                                   |
-| `private-key`              | No       | -             | SSH private key added to the `ssh-agent`.                                            |
+| `private-key`              | Yes      | -             | SSH private key added to the `ssh-agent`.                                            |
 | `known-hosts`              | No       | -             | Content written to `~/.ssh/known_hosts`.                                             |
 | `ssh-config`               | No       | -             | Content written to `~/.ssh/config`.                                                  |
 | `skip-ssh-setup`           | No       | `false`       | Skip the built-in SSH setup entirely.                                                |
@@ -105,7 +109,7 @@ When the deployment needs SSH access, provide SSH-related inputs to prepare `~/.
 
 - This action runs on the GitHub Actions `node24` runtime.
 - Installing dependencies is an optional workflow step, only needed when the deployment uses local project packages.
-- SSH setup runs before the Catapult command. If `private-key` is provided, also provide `known-hosts` or set `insecure-ignore-host-key: true`.
+- SSH setup runs before the Catapult command. `private-key` is required, and you should also provide `known-hosts` unless you intentionally set `insecure-ignore-host-key: true`.
 - `dist/` is the published entrypoint for the action and should be committed with source changes.
 
 ## License

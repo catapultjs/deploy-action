@@ -25,7 +25,7 @@ inputs:
 
   private-key:
     description: SSH private key used for deployment
-    required: false
+    required: true
   known-hosts:
     description: Content of ~/.ssh/known_hosts
     required: false

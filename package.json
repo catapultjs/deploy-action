@@ -24,5 +24,8 @@
     "semi": false,
     "singleQuote": true,
     "endOfLine": "lf"
+  },
+  "volta": {
+    "node": "24.13.0"
   }
 }

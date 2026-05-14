@@ -88,17 +88,10 @@ export async function setupSsh(): Promise<void> {
     return
   }
 
-  const privateKey = core.getInput('private-key')
+  const privateKey = core.getInput('private-key', { required: true })
   const knownHosts = core.getInput('known-hosts')
   const sshConfig = core.getInput('ssh-config')
   const insecureIgnoreHostKey = core.getBooleanInput('insecure-ignore-host-key')
-
-  if (!privateKey) {
-    core.info(
-      'Skipping SSH key setup because no private-key input was provided.',
-    )
-    return
-  }
 
   const home = process.env.HOME
   if (!home) {

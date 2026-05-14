@@ -19660,16 +19660,22 @@ function exportVariable(name, val) {
 }
 function getInput(name, options) {
   const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
+  if (options && options.required && !val) {
+    throw new Error(`Input required and not supplied: ${name}`);
+  }
+  if (options && options.trimWhitespace === false) {
+    return val;
+  }
   return val.trim();
 }
 function getMultilineInput(name, options) {
-  const inputs = getInput(name).split("\n").filter((x) => x !== "");
+  const inputs = getInput(name, options).split("\n").filter((x) => x !== "");
   return inputs.map((input) => input.trim());
 }
 function getBooleanInput(name, options) {
   const trueValue = ["true", "True", "TRUE"];
   const falseValue = ["false", "False", "FALSE"];
-  const val = getInput(name);
+  const val = getInput(name, options);
   if (trueValue.includes(val))
     return true;
   if (falseValue.includes(val))
@@ -19683,9 +19689,6 @@ function setFailed(message) {
 }
 function error(message, properties = {}) {
   issueCommand("error", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
-}
-function info(message) {
-  process.stdout.write(message + os__namespace.EOL);
 }
 function startGroup(name) {
   issue("group", name);
@@ -19748,16 +19751,10 @@ async function setupSsh() {
   if (getBooleanInput("skip-ssh-setup")) {
     return;
   }
-  const privateKey = getInput("private-key");
+  const privateKey = getInput("private-key", { required: true });
   const knownHosts = getInput("known-hosts");
   const sshConfig = getInput("ssh-config");
   const insecureIgnoreHostKey = getBooleanInput("insecure-ignore-host-key");
-  if (!privateKey) {
-    info(
-      "Skipping SSH key setup because no private-key input was provided."
-    );
-    return;
-  }
   const home = process.env.HOME;
   if (!home) {
     throw new Error("HOME environment variable is not defined.");
